@@ -15,7 +15,7 @@
     <GitVersion>true</GitVersion>
     <RepoDir>$(SolutionDir)</RepoDir>
     <GinjaSoftTasksAssemblyFilePath>$(MSBuildThisFileDirectory)..\GinjaSoft.MsBuild.Tasks\bin\$(Configuration)\netstandard2.0\GinjaSoft.MsBuild.Tasks.dll</GinjaSoftTasksAssemblyFilePath>
-    <PublishPackageToDir>c:\home\NuGetPackages</PublishPackageToDir>
+    <LocalPackageSourceDir>c:\home\NuGetPackages</LocalPackageSourceDir>
     <ClearLocalPackageCache>true</ClearLocalPackageCache>
   </PropertyGroup>
   

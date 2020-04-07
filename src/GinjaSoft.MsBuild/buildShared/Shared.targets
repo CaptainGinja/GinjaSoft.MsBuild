@@ -8,7 +8,7 @@
       <RepoDir>$([MSBuild]::EnsureTrailingSlash('$(RepoDir)'))</RepoDir>
       <LocalKeysDir>$([MSBuild]::EnsureTrailingSlash('$(LocalKeysDir)'))</LocalKeysDir>
       <RemoteKeysDir>$([MSBuild]::EnsureTrailingSlash('$(RemoteKeysDir)'))</RemoteKeysDir>
-      <PublishPackageTo>$([MSBuild]::EnsureTrailingSlash('$(PublishPackageTo)'))</PublishPackageTo>
+      <LocalPackageSourceDir>$([MSBuild]::EnsureTrailingSlash('$(LocalPackageSourceDir)'))</LocalPackageSourceDir>
       <TestsProjectDir>$([MSBuild]::EnsureTrailingSlash('$(TestsProjectDir)'))</TestsProjectDir>
       <TestsProjectFilePath Condition="$(TestsProjectDir) != '' AND
                                        $(TestsProjectName) != ''">$(TestsProjectDir)$(TestsProjectName).csproj</TestsProjectFilePath>
@@ -28,7 +28,7 @@
     <Message Importance="High" Condition="!Exists('$(TestsProjectFilePath)')"
                                Text="    TestsProjectFilePath does not exist" />
     <Message Importance="High" Text="  OutputPath = '$(OutputPath)'" />
-    <Message Importance="High" Text="  SignAssembly = $(SignAssembly)" />
+    <Message Importance="High" Text="  SignAssembly = '$(SignAssembly)'" />
     <Message Importance="High" Text="  KeyName = '$(KeyName)'" />
     <Message Importance="High" Text="  LocalKeysDir = '$(LocalKeysDir)'" />
     <Message Importance="High" Condition="Exists('$(LocalKeysDir)')"
@@ -50,11 +50,11 @@
     <Message Importance="High" Condition="!Exists('$(RepoDir)')"
                                Text="    RepoDir does not exist" />
     <Message Importance="High" Text="  IsPackable = '$(IsPackable)'" />
-    <Message Importance="High" Text="  PublishPackageToDir = '$(PublishPackageToDir)'" />
-    <Message Importance="High" Condition="Exists('$(PublishPackageToDir)')"
-                               Text="    PublishPackageToDir exists" />
-    <Message Importance="High" Condition="!Exists('$(PublishPackageToDir)')"
-                               Text="    PublishPackageToDir does not exist" />
+    <Message Importance="High" Text="  LocalPackageSourceDir = '$(LocalPackageSourceDir)'" />
+    <Message Importance="High" Condition="Exists('$(LocalPackageSourceDir)')"
+                               Text="    LocalPackageSourceDir exists" />
+    <Message Importance="High" Condition="!Exists('$(LocalPackageSourceDir)')"
+                               Text="    LocalPackageSourceDir does not exist" />
     <Message Importance="High" Text="  GinjaSoftTasksAssemblyFilePath = '$(GinjaSoftTasksAssemblyFilePath)'" />
   </Target>
   
@@ -207,7 +207,7 @@
     <Message Importance="High" Text="  PackageWithSymbolsFilePath = '$(PackageWithSymbolsFilePath)'" />
     <Message Importance="High" Text="  LocalCachedPackageDir = '$(LocalCachedPackageDir)'" />
     <Message Importance="High" Text="  ClearLocalPackageCache= '$(ClearLocalPackageCache)'" />
-    <Message Importance="High" Text="  PublishPackageToDir = '$(PublishPackageToDir)'" />
+    <Message Importance="High" Text="  LocalPackageSourceDir = '$(LocalPackageSourceDir)'" />
   </Target>
 
   <!-- Copy the new package to a folder if specified -->
@@ -215,12 +215,12 @@
           AfterTargets="Pack"
           BeforeTargets="PublishSymbolsPackageToDirectory"
           Condition="$(IsPackable) == 'true' AND
-                     $(PublishPackageToDir) != '' AND
-                     Exists('$(PublishPackageToDir)')">
+                     $(LocalPackageSourceDir) != '' AND
+                     Exists('$(LocalPackageSourceDir)')">
     <Message Importance="High" Text="[$(TargetFramework)]:TARGET: PublishPackageToDirectory" />
     
-    <Message Importance="High" Text="  Copying $(PackageFilePath) to $(PublishPackageToDir)" />
-    <Copy SourceFiles="$(PackageFilePath)" DestinationFolder="$(PublishPackageToDir)" />
+    <Message Importance="High" Text="  Copying $(PackageFilePath) to $(LocalPackageSourceDir)" />
+    <Copy SourceFiles="$(PackageFilePath)" DestinationFolder="$(LocalPackageSourceDir)" />
   </Target>
   
   <!-- Also copy the new symbols/source package if it has been created -->
@@ -228,13 +228,13 @@
           AfterTargets="Pack"
           BeforeTargets="ClearLocalPackageCache"
           Condition="$(IsPackable) == 'true' AND
-                     $(PublishPackageToDir) != '' AND
-                     Exists('$(PublishPackageToDir)') AND
+                     $(LocalPackageSourceDir) != '' AND
+                     Exists('$(LocalPackageSourceDir)') AND
                      Exists('$(PackageWithSymbolsFilePath)')">
     <Message Importance="High" Text="[$(TargetFramework)]:TARGET: PublishSymbolsPackageToDirectory" />
     
-    <Message Importance="High" Text="  Copying $(PackageWithSymbolsFilePath) to $(PublishPackageToDir)" />
-    <Copy SourceFiles="$(PackageWithSymbolsFilePath)" DestinationFolder="$(PublishPackageToDir)" />
+    <Message Importance="High" Text="  Copying $(PackageWithSymbolsFilePath) to $(LocalPackageSourceDir)" />
+    <Copy SourceFiles="$(PackageWithSymbolsFilePath)" DestinationFolder="$(LocalPackageSourceDir)" />
   </Target>
 
   <!-- Delete the new version of the package from the specified LocalCachedPackageDir if requested -->
