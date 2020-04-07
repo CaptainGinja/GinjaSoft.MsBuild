@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  
+  <ImportGroup>
+    <Import Project="$(MSBuildThisFileDirectory)buildShared\Shared.props"
+            Condition="Exists('$(MSBuildThisFileDirectory)buildShared\Shared.props')" />
+  </ImportGroup>
+  
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <Authors>GinjaSoft</Authors>
+    <Owners>GinjaSoft</Owners>
+    <Description>GinjaSoft MsBuild Tools</Description>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <GitVersion>true</GitVersion>
+    <GinjaSoftTasksAssemblyFilePath>$(MSBuildThisFileDirectory)..\GinjaSoft.MsBuild.Tasks\bin\$(Configuration)\netstandard2.0\GinjaSoft.MsBuild.Tasks.dll</GinjaSoftTasksAssemblyFilePath>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <Content Include="build\*.targets">
+      <PackagePath>build\%(Filename)%(Extension)</PackagePath>
+    </Content>
+	  <Content Include="build\*.props">
+      <PackagePath>build\%(Filename)%(Extension)</PackagePath>
+    </Content>
+	  <Content Include="buildCrossTargeting\*.targets">
+      <PackagePath>buildCrossTargeting\%(Filename)%(Extension)</PackagePath>
+    </Content>
+	  <Content Include="buildCrossTargeting\*.props">
+      <PackagePath>buildCrossTargeting\%(Filename)%(Extension)</PackagePath>
+    </Content>
+	  <Content Include="buildShared\*.targets">
+      <PackagePath>buildShared\%(Filename)%(Extension)</PackagePath>
+    </Content>
+	  <Content Include="buildShared\*.props">
+      <PackagePath>buildShared\%(Filename)%(Extension)</PackagePath>
+    </Content>
+	  <Content Include="..\GinjaSoft.MsBuild.Tasks\bin\$(Configuration)\$(TargetFramework)\*.dll">
+      <PackagePath>tools\%(Filename)%(Extension)</PackagePath>
+    </Content>
+  </ItemGroup>
+  
+  <Target Name="BuildDependentProjects"
+          BeforeTargets="SharedShowProperties">
+    <Message Importance="High" Text="[$(TargetFramework)]:TARGET: BuildDependentProjects" />
+		
+    <MSBuild Projects="..\GinjaSoft.MsBuild.Tasks\GinjaSoft.MsBuild.Tasks.csproj" />
+  </Target>
+  
+  <ImportGroup>
+    <Import Project="$(MSBuildThisFileDirectory)buildCrossTargeting\GinjaSoft.MsBuild.targets"
+            Condition="Exists('$(MSBuildThisFileDirectory)buildCrossTargeting\GinjaSoft.MsBuild.targets')" />
+  </ImportGroup>
+  
+</Project>

@@ -1,0 +1,1 @@
+# GinjaSoft.MsBuild
