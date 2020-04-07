@@ -3,12 +3,7 @@
 
   <PropertyGroup>
     <ProjectDir Condition="$(ProjectDir) == ''">$(MSBuildProjectDirectory)\</ProjectDir>
-    <SolutionDir Condition="$(SolutionDir) == ''">$(ProjectDir)..\</SolutionDir>
     <ProjectName Condition="$(ProjectName) == ''">$(MSBuildProjectName)</ProjectName>
-    <LocalKeysDir>$(ProjectDir)Keys\$(TargetFramework)\</LocalKeysDir>
-    <Title>$(ProjectName)</Title>
-    <Authors>GinjaSoft</Authors>
-    <Owners>SQGinjaSoftLIS</Owners>
     <GinjaSoftTasksAssemblyFilePath>$(MSBuildThisFileDirectory)..\tools\GinjaSoft.MsBuild.Tasks.dll</GinjaSoftTasksAssemblyFilePath>
   </PropertyGroup>
 

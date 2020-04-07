@@ -5,90 +5,11 @@
     <Import Project="$(MSBuildThisFileDirectory)..\buildShared\Shared.targets"
             Condition="Exists('$(MSBuildThisFileDirectory)..\buildShared\Shared.targets')" />
   </ImportGroup>
-  
-  <UsingTask TaskName="GinjaSoft.MsBuild.Tasks.PublishPackageToArtifactoryTask"
-             AssemblyFile="$(GinjaSoftTasksAssemblyFilePath)" />
-
-  <!-- Call our custom GitVersion MSBuild task to extract version info from Git and set the appropriate properties -->
-  <Target Name="SetPackageVersion"
-          DependsOnTargets="SharedShowProperties"
-          BeforeTargets="SetPackageProperties">
-    <Message Importance="High" Text="[$(TargetFramework)]:TARGET: SetPackageVersion" />
-
-    <GitVersionTask RepoPath="$(SolutionDir)">
-      <Output TaskParameter="InformationalVersion" PropertyName="PackageVersion" />
-    </GitVersionTask>
-
-    <Message Importance="High" Text="  PackageVersion = $(PackageVersion)" />
-  </Target>
-
-  <Target Name="SetPackageProperties"
-          BeforeTargets="GenerateNuSpec;PublishPackageToDirectory">
-    <Message Importance="High" Text="[$(TargetFramework)]:TARGET: SetPackageProperties" />
     
-    <PropertyGroup>
-      <PackageName>$(ProjectName).$(PackageVersion)</PackageName>
-      <PackageFile>$(PackageName).nupkg</PackageFile>
-	    <PackageWithSymbolsFile>$(PackageName).symbols.nupkg</PackageWithSymbolsFile>
-	    <PackageDir>$(ProjectDir)bin\$(Configuration)\</PackageDir>
-      <PackageFilePath>$(PackageDir)$(PackageFile)</PackageFilePath>
-	    <PackageWithSymbolsFilePath>$(PackageDir)$(PackageWithSymbolsFile)</PackageWithSymbolsFilePath>
-      <LocalCachedPackageDir>$(NuGetPackageRoot)$(ProjectName)\$(PackageVersion)</LocalCachedPackageDir>
-    </PropertyGroup>
-	
-    <Message Importance="High" Text="  PackageName = $(PackageName)" />
-    <Message Importance="High" Text="  PackageFile = $(PackageFile)" />
-    <Message Importance="High" Text="  PackageWithSymbolsFile = $(PackageWithSymbolsFile)" />
-    <Message Importance="High" Text="  PackageDir = $(PackageDir)" />
-    <Message Importance="High" Text="  PackageFilePath = $(PackageFilePath)" />
-    <Message Importance="High" Text="  PackageWithSymbolsFilePath = $(PackageWithSymbolsFilePath)" />
-    <Message Importance="High" Text="  LocalCachedPackageDir = $(LocalCachedPackageDir)" />
+  <Target Name="ShowInfo"
+          BeforeTargets="SharedShowProperties">
+    <Message Importance="High" Text="[$(TargetFramework)]:TARGET: ShowInfo" />
+    <Message Importance="High" Text="  Running from BuildCrossTargeting" />
   </Target>
 
-  <Target Name="PublishPackageToDirectory"
-          AfterTargets="Pack"
-          BeforeTargets="PublishSymbolsPackageToDirectory"
-          Condition="$(IsPackable) == 'true' AND
-		                 $(PublishPackageTo) != '' AND
-					           $(PublishPackageTo) != 'Artifactory' AND
-					           Exists('$(PublishPackageTo)')">
-    <Message Importance="High" Text="[$(TargetFramework)]:TARGET: PublishPackageToDirectory" />
-    
-    <Message Importance="High" Text="Copying $(PackageFilePath) to $(PublishPackageTo)" />
-    <Copy SourceFiles="$(PackageFilePath)" DestinationFolder="$(PublishPackageTo)" />
-  </Target>
-  
-  <Target Name="PublishSymbolsPackageToDirectory"
-          AfterTargets="Pack"
-          BeforeTargets="ClearLocalPackageCache"
-          Condition="$(IsPackable) == 'true' AND
-		                 $(PublishPackageTo) != '' AND
-					           $(PublishPackageTo) != 'Artifactory' AND
-					           Exists('$(PublishPackageTo)') AND
-					           Exists('$(PackageWithSymbolsFilePath)')">
-    <Message Importance="High" Text="[$(TargetFramework)]:TARGET: PublishSymbolsPackageToDirectory" />
-    
-    <Message Importance="High" Text="Copying $(PackageWithSymbolsFilePath) to $(PublishPackageTo)" />
-    <Copy SourceFiles="$(PackageWithSymbolsFilePath)" DestinationFolder="$(PublishPackageTo)" />
-  </Target>
-  
-  <Target Name="ClearLocalPackageCache"
-          AfterTargets="Pack"
-          BeforeTargets="PublishPackageToArtifactory"
-          Condition="$(IsPackable) == 'true' AND $(ClearLocalPackageCache) == 'true'">
-    <Message Importance="High" Text="[$(TargetFramework)]:TARGET: ClearLocalPackageCache" />
-    
-    <Message Importance="High" Text="Removing dir $(LocalCachedPackageDir)" />
-    <RemoveDir Directories="$(LocalCachedPackageDir)" />
-  </Target>
-  
-  <Target Name="PublishPackageToArtifactory"
-          AfterTargets="Pack"
-          Condition="$(IsPackable) == 'true' AND $(PublishPackageTo) == 'Artifactory'">
-    <Message Importance="High" Text="[$(TargetFramework)]:TARGET: PublishPackageToArtifactory" />
-
-    <PublishPackageToArtifactoryTask PackageFilePath="$(PackageFilePath)">
-    </PublishPackageToArtifactoryTask>
-  </Target>
-  
 </Project>

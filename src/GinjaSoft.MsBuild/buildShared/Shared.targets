@@ -3,40 +3,79 @@
 
   <Target Name="SharedShowProperties"
           BeforeTargets="CopyKeyFiles">
-    <Message Importance="High" Text="[$(TargetFramework)]:TARGET: SharedShowProperties" />
 
-    <Message Importance="High" Text="  ProjectDir = $(ProjectDir)" />
-    <Message Importance="High" Text="  MSBuildProjectDirectory = $(MSBuildProjectDirectory)" />
-    <Message Importance="High" Text="  SolutionDir = $(SolutionDir)" />
-    <Message Importance="High" Text="  ProjectName = $(ProjectName)" />
-    <Message Importance="High" Text="  MSBuildProjectName = $(MSBuildProjectName)" />
-    <Message Importance="High" Text="  OutputPath = $(OutputPath)" />
-    <Message Importance="High" Text="  LocalKeysDir = $(LocalKeysDir)" />
-    <Message Importance="High" Text="  RemoteKeysDir = $(RemoteKeysDir)" />
-    <Message Importance="High" Text="  Configuration = $(Configuration)" />
-    <Message Importance="High" Text="  TargetFramework = $(TargetFramework)" />
-    <Message Importance="High" Text="  NuGetPackageRoot = $(NuGetPackageRoot)" />
-    <Message Importance="High" Text="  GitVersion = $(GitVersion)" />
-    <Message Importance="High" Text="  IsPackable = $(IsPackable)" />
-    <Message Importance="High" Text="  PublishPackageTo = $(PublishPackageTo)" />
-    <Message Importance="High" Text="  ClearLocalPackageCache = $(ClearLocalPackageCache)" />
-    <Message Importance="High" Text="  GinjaSoftTasksAssemblyFilePath = $(GinjaSoftTasksAssemblyFilePath)" />
+    <PropertyGroup>
+      <RepoDir>$([MSBuild]::EnsureTrailingSlash('$(RepoDir)'))</RepoDir>
+      <LocalKeysDir>$([MSBuild]::EnsureTrailingSlash('$(LocalKeysDir)'))</LocalKeysDir>
+      <RemoteKeysDir>$([MSBuild]::EnsureTrailingSlash('$(RemoteKeysDir)'))</RemoteKeysDir>
+      <PublishPackageTo>$([MSBuild]::EnsureTrailingSlash('$(PublishPackageTo)'))</PublishPackageTo>
+      <TestsProjectDir>$([MSBuild]::EnsureTrailingSlash('$(TestsProjectDir)'))</TestsProjectDir>
+      <TestsProjectFilePath Condition="$(TestsProjectDir) != '' AND
+                                       $(TestsProjectName) != ''">$(TestsProjectDir)$(TestsProjectName).csproj</TestsProjectFilePath>
+    </PropertyGroup>
+
+    <Message Importance="High" Text="[$(TargetFramework)]:TARGET: SharedShowProperties" />
+    <Message Importance="High" Text="  ProjectDir = '$(ProjectDir)'" />
+    <Message Importance="High" Text="  MSBuildProjectDirectory = '$(MSBuildProjectDirectory)'" />
+    <Message Importance="High" Text="  SolutionDir = '$(SolutionDir)'" />
+    <Message Importance="High" Text="  ProjectName = '$(ProjectName)'" />
+    <Message Importance="High" Text="  MSBuildProjectName = '$(MSBuildProjectName)'" />
+    <Message Importance="High" Text="  TestsProjectDir = '$(TestsProjectDir)'" />
+    <Message Importance="High" Text="  TestsProjectName = '$(TestsProjectName)'" />
+    <Message Importance="High" Text="  TestsProjectFilePath = '$(TestsProjectFilePath)'" />
+    <Message Importance="High" Condition="Exists('$(TestsProjectFilePath)')"
+                               Text="    TestsProjectFilePath exists" />
+    <Message Importance="High" Condition="!Exists('$(TestsProjectFilePath)')"
+                               Text="    TestsProjectFilePath does not exist" />
+    <Message Importance="High" Text="  OutputPath = '$(OutputPath)'" />
+    <Message Importance="High" Text="  SignAssembly = $(SignAssembly)" />
+    <Message Importance="High" Text="  KeyName = '$(KeyName)'" />
+    <Message Importance="High" Text="  LocalKeysDir = '$(LocalKeysDir)'" />
+    <Message Importance="High" Condition="Exists('$(LocalKeysDir)')"
+                               Text="    LocalKeysDir exists" />
+    <Message Importance="High" Condition="!Exists('$(LocalKeysDir)')"
+                               Text="    LocalKeysDir does not exist" />
+    <Message Importance="High" Text="  RemoteKeysDir = '$(RemoteKeysDir)'" />
+    <Message Importance="High" Condition="Exists('$(RemoteKeysDir)')"
+                               Text="    RemoteKeysDir exists" />
+    <Message Importance="High" Condition="!Exists('$(RemoteKeysDir)')"
+                               Text="    RemoteKeysDir does not exist" />
+    <Message Importance="High" Text="  Configuration = '$(Configuration)'" />
+    <Message Importance="High" Text="  TargetFramework = '$(TargetFramework)'" />
+    <Message Importance="High" Text="  NuGetPackageRoot = '$(NuGetPackageRoot)'" />
+    <Message Importance="High" Text="  GitVersion = '$(GitVersion)'" />
+    <Message Importance="High" Text="  RepoDir = '$(RepoDir)'" />
+    <Message Importance="High" Condition="Exists('$(RepoDir)')"
+                               Text="    RepoDir exists" />
+    <Message Importance="High" Condition="!Exists('$(RepoDir)')"
+                               Text="    RepoDir does not exist" />
+    <Message Importance="High" Text="  IsPackable = '$(IsPackable)'" />
+    <Message Importance="High" Text="  PublishPackageToDir = '$(PublishPackageToDir)'" />
+    <Message Importance="High" Condition="Exists('$(PublishPackageToDir)')"
+                               Text="    PublishPackageToDir exists" />
+    <Message Importance="High" Condition="!Exists('$(PublishPackageToDir)')"
+                               Text="    PublishPackageToDir does not exist" />
+    <Message Importance="High" Text="  GinjaSoftTasksAssemblyFilePath = '$(GinjaSoftTasksAssemblyFilePath)'" />
   </Target>
   
   <UsingTask TaskName="GinjaSoft.MsBuild.Tasks.GitVersionTask"
              AssemblyFile="$(GinjaSoftTasksAssemblyFilePath)" />
 
+
+  <!--
+    The following targets will be invoked during the execution of 'dotnet build'
+  -->
+
   <!-- Possibly aquire keys for signing -->
   <Target Name="CopyKeyFiles"
           BeforeTargets="SignAssembly"
           DependsOnTargets="SharedShowProperties"
-          Condition="$(SignAssembly) == 'true' AND !Exists('$(LocalKeysDir)GinjaSoft.snk')">
+          Condition="$(SignAssembly) == 'true' AND !Exists('$(LocalKeysDir)$(KeyName).snk')">
     <Message Importance="High" Text="[$(TargetFramework)]:TARGET: CopyKeyFiles" />
-
     <Message Importance="High" Text="  Copying key files from $(RemoteKeysDir) to $(LocalKeysDir)" />
     <MakeDir Directories="$(LocalKeysDir)"/>
-    <Copy SourceFiles="$(RemoteKeysDir)GinjaSoft.snk" DestinationFolder="$(LocalKeysDir)" />
-    <Copy SourceFiles="$(RemoteKeysDir)GinjaSoftPublicKey.txt" DestinationFolder="$(LocalKeysDir)" />
+    <Copy SourceFiles="$(RemoteKeysDir)$(KeyName).snk" DestinationFolder="$(LocalKeysDir)" />
+    <Copy SourceFiles="$(RemoteKeysDir)$(KeyName)PublicKey.txt" DestinationFolder="$(LocalKeysDir)" />
     <Copy SourceFiles="$(RemoteKeysDir)MoqPublicKey.txt" DestinationFolder="$(LocalKeysDir)" />
   </Target>
   
@@ -48,56 +87,64 @@
 
     <PropertyGroup>
       <!-- This is the property that tells MSBuild the key file to use to sign the assembly -->
-      <AssemblyOriginatorKeyFile>$(LocalKeysDir)GinjaSoft.snk</AssemblyOriginatorKeyFile>
+      <AssemblyOriginatorKeyFile>$(LocalKeysDir)$(KeyName).snk</AssemblyOriginatorKeyFile>
     </PropertyGroup>
   </Target>
   
   <!-- When we are signing the assembly -->
   <Target Name="InternalsVisibleToSigned"
           BeforeTargets="InternalsVisibleToUnsigned"
-          Condition="$(SignAssembly) == 'true'">
+          Condition="$(SignAssembly) == 'true' AND
+                     Exists('$(TestsProjectFilePath)')">
     <Message Importance="High" Text="[$(TargetFramework)]:TARGET: InternalsVisibleToSigned" />
 
-    <ReadLinesFromFile File="$(LocalKeysDir)GinjaSoftPublicKey.txt">
-      <Output TaskParameter="Lines" PropertyName="GinjaSoftPublicKey"/>
+    <ReadLinesFromFile File="$(LocalKeysDir)$(KeyName)PublicKey.txt">
+      <Output TaskParameter="Lines" PropertyName="AssemblyPublicKey"/>
     </ReadLinesFromFile>
     <ReadLinesFromFile File="$(LocalKeysDir)MoqPublicKey.txt">
       <Output TaskParameter="Lines" PropertyName="MoqPublicKey"/>
     </ReadLinesFromFile>
     <PropertyGroup>
-      <GinjaSoftExtra>,PublicKey=$(GinjaSoftPublicKey)</GinjaSoftExtra>
-      <MoqExtra>,PublicKey=$(MoqPublicKey)</MoqExtra>
+      <AssemblyNameExtra>,PublicKey=$(AssemblyPublicKey)</AssemblyNameExtra>
+      <MoqAssemblyNameExtra>,PublicKey=$(MoqPublicKey)</MoqAssemblyNameExtra>
     </PropertyGroup>
   </Target>
 
   <!-- When we are not signing the assembly -->
   <Target Name="InternalsVisibleToUnsigned"
           BeforeTargets="InternalsVisibleTo"
-          Condition="$(SignAssembly) != 'true'">
+          Condition="$(SignAssembly) != 'true' AND
+                     Exists('$(TestsProjectFilePath)')">
     <Message Importance="High" Text="[$(TargetFramework)]:TARGET: InternalsVisibleToUnsigned" />
 
     <PropertyGroup>
-      <GinjaSoftExtra></GinjaSoftExtra>
-      <MoqExtra></MoqExtra>
+      <AssemblyNameExtra></AssemblyNameExtra>
+      <MoqAssemblyNameExtra></MoqAssemblyNameExtra>
     </PropertyGroup>
   </Target>
   
   <!-- Add InternalsVisibleTo assembly attributes to support unit testing -->
   <Target Name="InternalsVisibleTo"
-          BeforeTargets="GitVersion">
+          BeforeTargets="GitVersion"
+          Condition="Exists('$(TestsProjectFilePath)')">
     <Message Importance="High" Text="[$(TargetFramework)]:TARGET: InternalsVisibleTo" />
-
-    <Message Importance="High" Text="  GinjaSoftExtra = $(GinjaSoftExtra)" />
-    <Message Importance="High" Text="  MoqExtra = $(MoqExtra)" />
+    <Message Importance="High" Text="  TestsProjectDir = '$(TestsProjectDir)'" />
+    <Message Importance="High" Text="  TestsProjectName = '$(TestsProjectName)'" />
+    <Message Importance="High"
+             Condition="$(SignAssembly) == 'true'"
+             Text="  AssemblyNameExtra = '$(AssemblyNameExtra)'" />
+    <Message Importance="High"
+             Condition="$(SignAssembly) == 'true'"
+             Text="  MoqAssemblyNameExtra = '$(MoqAssemblyNameExtra)'" />
 
     <ItemGroup>
       <!-- Assumes that our unit test project is named (ProjectName).Tests -->
       <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-        <_Parameter1>$(ProjectName).Tests$(GinjaSoftExtra)</_Parameter1>
+        <_Parameter1>$(TestsProjectName)$(AssemblyNameExtra)</_Parameter1>
       </AssemblyAttribute>
       <!-- Automatically expose internals to Moq -->
       <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-        <_Parameter1>DynamicProxyGenAssembly2$(MoqExtra)</_Parameter1>
+        <_Parameter1>DynamicProxyGenAssembly2$(MoqAssemblyNameExtra)</_Parameter1>
       </AssemblyAttribute>
     </ItemGroup>
   </Target>
@@ -114,9 +161,89 @@
       <Output TaskParameter="InformationalVersion" PropertyName="InformationalVersion" />
     </GitVersionTask>
 
-    <Message Importance="High" Text="  Version = $(Version)" />
-    <Message Importance="High" Text="  FileVersion = $(FileVersion)" />
-    <Message Importance="High" Text="  InformationalVersion = $(InformationalVersion)" />
+    <Message Importance="High" Text="  Version = '$(Version)'" />
+    <Message Importance="High" Text="  FileVersion = '$(FileVersion)'" />
+    <Message Importance="High" Text="  InformationalVersion = '$(InformationalVersion)'" />
+  </Target>
+
+
+  <!--
+    The following targets will be invoked during the execution of 'dotnet pack'
+  -->
+
+  <!-- Call our custom GitVersion MSBuild task to extract version info from Git and set the appropriate properties  -->
+  <Target Name="SetPackageVersion"
+          DependsOnTargets="SharedShowProperties"
+          BeforeTargets="SetPackageProperties">
+    <Message Importance="High" Text="[$(TargetFramework)]:TARGET: SetPackageVersion" />
+
+    <GitVersionTask RepoPath="$(SolutionDir)">
+      <Output TaskParameter="InformationalVersion" PropertyName="PackageVersion" />
+    </GitVersionTask>
+
+    <Message Importance="High" Text="  PackageVersion = '$(PackageVersion)'" />
+  </Target>
+
+  <!-- Set the appropriate properties for NuGet to use when creating the package -->
+  <Target Name="SetPackageProperties"
+          BeforeTargets="GenerateNuSpec;PublishPackageToDirectory">
+    <Message Importance="High" Text="[$(TargetFramework)]:TARGET: SetPackageProperties" />
+    
+    <PropertyGroup>
+      <PackageName>$(ProjectName).$(PackageVersion)</PackageName>
+      <PackageFile>$(PackageName).nupkg</PackageFile>
+      <PackageWithSymbolsFile>$(PackageName).symbols.nupkg</PackageWithSymbolsFile>
+      <PackageDir>$(ProjectDir)bin\$(Configuration)\</PackageDir>
+      <PackageFilePath>$(PackageDir)$(PackageFile)</PackageFilePath>
+      <PackageWithSymbolsFilePath>$(PackageDir)$(PackageWithSymbolsFile)</PackageWithSymbolsFilePath>
+      <LocalCachedPackageDir>$(NuGetPackageRoot)$(ProjectName)\$(PackageVersion)</LocalCachedPackageDir>
+    </PropertyGroup>
+	
+    <Message Importance="High" Text="  PackageName = '$(PackageName)'" />
+    <Message Importance="High" Text="  PackageFile = '$(PackageFile)'" />
+    <Message Importance="High" Text="  PackageWithSymbolsFile = '$(PackageWithSymbolsFile)'" />
+    <Message Importance="High" Text="  PackageDir = '$(PackageDir)'" />
+    <Message Importance="High" Text="  PackageFilePath = '$(PackageFilePath)'" />
+    <Message Importance="High" Text="  PackageWithSymbolsFilePath = '$(PackageWithSymbolsFilePath)'" />
+    <Message Importance="High" Text="  LocalCachedPackageDir = '$(LocalCachedPackageDir)'" />
+    <Message Importance="High" Text="  ClearLocalPackageCache= '$(ClearLocalPackageCache)'" />
+    <Message Importance="High" Text="  PublishPackageToDir = '$(PublishPackageToDir)'" />
+  </Target>
+
+  <!-- Copy the new package to a folder if specified -->
+  <Target Name="PublishPackageToDirectory"
+          AfterTargets="Pack"
+          BeforeTargets="PublishSymbolsPackageToDirectory"
+          Condition="$(IsPackable) == 'true' AND
+                     $(PublishPackageToDir) != '' AND
+                     Exists('$(PublishPackageToDir)')">
+    <Message Importance="High" Text="[$(TargetFramework)]:TARGET: PublishPackageToDirectory" />
+    
+    <Message Importance="High" Text="  Copying $(PackageFilePath) to $(PublishPackageToDir)" />
+    <Copy SourceFiles="$(PackageFilePath)" DestinationFolder="$(PublishPackageToDir)" />
+  </Target>
+  
+  <!-- Also copy the new symbols/source package if it has been created -->
+  <Target Name="PublishSymbolsPackageToDirectory"
+          AfterTargets="Pack"
+          BeforeTargets="ClearLocalPackageCache"
+          Condition="$(IsPackable) == 'true' AND
+                     $(PublishPackageToDir) != '' AND
+                     Exists('$(PublishPackageToDir)') AND
+                     Exists('$(PackageWithSymbolsFilePath)')">
+    <Message Importance="High" Text="[$(TargetFramework)]:TARGET: PublishSymbolsPackageToDirectory" />
+    
+    <Message Importance="High" Text="  Copying $(PackageWithSymbolsFilePath) to $(PublishPackageToDir)" />
+    <Copy SourceFiles="$(PackageWithSymbolsFilePath)" DestinationFolder="$(PublishPackageToDir)" />
+  </Target>
+
+  <!-- Delete the new version of the package from the specified LocalCachedPackageDir if requested -->
+  <Target Name="ClearLocalPackageCache"
+          AfterTargets="Pack"
+          Condition="$(IsPackable) == 'true' AND $(ClearLocalPackageCache) == 'true'">
+    <Message Importance="High" Text="[$(TargetFramework)]:TARGET: ClearLocalPackageCache" />
+    <Message Importance="High" Text="Removing dir $(LocalCachedPackageDir)" />
+    <RemoveDir Directories="$(LocalCachedPackageDir)" />
   </Target>
   
 </Project>

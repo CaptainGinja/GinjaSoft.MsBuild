@@ -6,4 +6,9 @@
             Condition="Exists('$(MSBuildThisFileDirectory)..\buildShared\Shared.targets')" />
   </ImportGroup>
   
+  <Target Name="ShowInfo"
+          BeforeTargets="SharedShowProperties">
+    <Message Importance="High" Text="[$(TargetFramework)]:TARGET: ShowInfo" />
+    <Message Importance="High" Text="  Running from Build" />
+  </Target>
 </Project>
